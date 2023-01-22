@@ -6,99 +6,63 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@RequestMapping("/bookstore")
+@RequestMapping("/bookStore")
 @RestController
+@CrossOrigin(origins="http://localhost:4200")
 public class BookController {
+
     @Autowired
-    BookService bookSer;
+    BookService bookService;
 
     @GetMapping
     public ResponseEntity<List<Book>> getAllBooks() {
-        List<Book> books;
-        books = bookSer.findBooks();
-
+        List<Book> books = new ArrayList<Book>();
+        books = bookService.findBooks();
         return new ResponseEntity<>(books, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Book> getBookById(@PathVariable int id) {
-        return new ResponseEntity<>(bookSer.fetchBook(id).get(), HttpStatus.OK);
-
+        return new ResponseEntity<>(bookService.fetchBook(id).get(), HttpStatus.OK);
     }
-    @PostMapping public ResponseEntity<Book> addBook(@RequestBody Book book) {
 
-        bookSer.addBook(book);
-
+    @PostMapping
+    public ResponseEntity<Book> addBook(@RequestBody Book book) {
+        bookService.addBook(book);
         return new ResponseEntity<>(book, HttpStatus.CREATED);
     }
-    @PostMapping("/addbooks")
-        public ResponseEntity<?> addBooks(@RequestBody List<Book> newBooks) {
-
-        for (Book book:newBooks ) {
-            bookSer.addBook(book);
-
-        }
-
-        return new ResponseEntity<>(newBooks, HttpStatus.CREATED);}
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Book> removeBookById(@PathVariable int id) {
-        Book book = bookSer.fetchBook(id).get();
-        if (bookSer.deleteBook(id)) {
+        Book book = bookService.fetchBook(id).get();
+
+        if (bookService.deleteBook(id)) {
             return new ResponseEntity<>(book, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(book, HttpStatus.BAD_REQUEST);
         }
-
     }
-    @GetMapping("/id/year")
-    public ResponseEntity<List<Book>> getLatestBook(){
-        List<Book> books;
-        books = bookSer.findBooks();
-        Integer latestYear = 0;
-        Integer latestId = 0;
-        Integer oldestYear = 0;
-        Integer oldestId = 0;
 
-        for (Book book:books) {
-            if(book.getYear()>latestYear){
-                latestYear = book.getYear();
-                latestId = book.getId();
-            }
-            if(book.getYear()<oldestYear||oldestYear==0){
-                oldestYear = book.getYear();
-                oldestId = book.getId();
-
-            }
-
+    @GetMapping("/oldest")
+    public ResponseEntity<Book> getOldestBook() {
+        if(bookService.checkSize()){
+            return new ResponseEntity<>(bookService.fetchOldestBook(), HttpStatus.OK);
+        }else{
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
-        List<Book> edgeYears = new ArrayList<>();
-        edgeYears.add(bookSer.fetchBook(latestId).get());
-        edgeYears.add(bookSer.fetchBook(oldestId).get());
-        return new ResponseEntity<>(edgeYears, HttpStatus.OK);
-
     }
 
-//    @GetMapping("/{id}")
-//    public ResponseEntity<Book> getoldestBook(){
-//        List<Book> books;
-//        books = bookSer.findBooks();
-//        Integer year = 3000;
-//        Integer id = 0;
-//        for (Book book:books) {
-//            if(book.getYear()<year){
-//                year = book.getYear();
-//                id = book.getId();
-//            }
-//
-//        }
-//        return new ResponseEntity<>(bookSer.fetchBook(id).get(), HttpStatus.OK);
-//
-//    }
+    @GetMapping("/latest")
+    public ResponseEntity<Book> getLatestBook() {
+        if(bookService.checkSize()){
+            return new ResponseEntity<>(bookService.fetchLatestBook(), HttpStatus.OK);
+        }else{
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+    }
 }
-
-

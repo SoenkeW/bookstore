@@ -10,29 +10,66 @@ import java.util.Optional;
 
 @Service
 public class BookService {
+
     @Autowired
     private BookRepo bookRepo;
 
-    public List<Book> findBooks(){
-
+    public List<Book> findBooks() {
         return bookRepo.findAll();
     }
-    public Optional<Book> fetchBook(int id){
+
+    public Optional<Book> fetchBook(int id) {
         return bookRepo.findById(id);
     }
-    public Book addBook(Book book){
+
+    public Book addBook(Book book) {
         return bookRepo.save(book);
     }
-    public boolean deleteBook(int id){
 
+    public boolean deleteBook(int id) {
         boolean status;
         try {
             bookRepo.deleteById(id);
             status = true;
-        }catch (Exception e){
-            status=false;}
+        } catch (Exception e) {
+            status = false;
+        }
         return status;
-        }}
+    }
 
+    public boolean checkSize() {
+        List<Book> bookList = bookRepo.findAll();
+        if (bookList.size() > 0) {
+            return true;
+        } else {
+            return false;
+        }
 
+    }
 
+    public Book fetchOldestBook() {
+        List<Book> bookList = bookRepo.findAll();
+        int oldest = Integer.MAX_VALUE;
+        Book temp = new Book();
+        for (Book book : bookList) {
+            if (book.getYear() < oldest) {
+                temp = book;
+                oldest = book.getYear();
+            }
+        }
+        return temp;
+    }
+
+    public Book fetchLatestBook() {
+        List<Book> bookList = bookRepo.findAll();
+        int latest = Integer.MIN_VALUE;
+        Book temp = new Book();
+        for (Book book : bookList) {
+            if (book.getYear() > latest) {
+                temp = book;
+                latest = book.getYear();
+            }
+        }
+        return temp;
+    }
+}
